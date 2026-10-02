@@ -49,7 +49,7 @@ cartwise/
 **Requirements:** Python 3.10+
 
 ```bash
-git clone https://github.com/<your-username>/cartwise.git
+git clone https://github.com/Sudip-dolai/cartwise.git
 cd cartwise
 
 python -m venv .venv
