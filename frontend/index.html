@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cartwise — compare smarter, buy once</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#eef1f6;--surface:#fff;--ink:#101828;--mute:#5b6577;--line:#dde3ec;--brand:#0d5c63;--brand-2:#0a4a50;--tint:#e3f1f1;--gold:#f2a516;--good:#1a7f4b;--bad:#c2410c;--r:14px;
+--head:'Bricolage Grotesque',system-ui,sans-serif;--body:'Instrument Sans',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+body{font:400 15px/1.5 var(--body);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+header.top{background:var(--brand);color:#fff;padding:6px 0 32px;position:relative;overflow:hidden}
+header.top:after{content:"";position:absolute;right:-90px;top:-120px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#17858f,transparent 70%);opacity:.7}
+.bar{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.logo{font:800 24px var(--head);letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.logo i{width:30px;height:30px;border-radius:9px;background:var(--gold);display:grid;place-items:center;color:var(--brand-2);font-style:normal;font-size:17px}
+.ghost{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;padding:8px 16px;font-weight:500}
+.ghost:hover{background:rgba(255,255,255,.24)}
+h1{font:800 clamp(28px,4.6vw,52px)/1.04 var(--head);letter-spacing:-.03em;margin:22px 0 8px;max-width:760px;position:relative;z-index:1}
+.sub{color:#c6e2e3;max-width:560px;position:relative;z-index:1}
+.search{display:flex;gap:10px;margin-top:22px;max-width:720px;position:relative;z-index:1;background:#fff;border-radius:16px;padding:7px;box-shadow:0 12px 30px rgba(6,40,44,.35)}
+#pin{flex:0 0 108px!important;border-left:1px solid var(--line)!important;font-size:15px!important}
+.search input{flex:1;border:0;outline:0;padding:11px 14px;font-size:16px;background:none;color:var(--ink);min-width:0}
+.btn{border:0;border-radius:11px;padding:11px 20px;font-weight:600;background:var(--brand);color:#fff;transition:background .15s}
+.btn:hover{background:var(--brand-2)}
+.btn:disabled{background:#b8c2d0;cursor:not-allowed}
+.btn.alt{background:var(--tint);color:var(--brand-2)}.btn.alt:hover{background:#cfe6e7}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;position:relative;z-index:1}
+.chip{border:1px solid rgba(255,255,255,.3);background:transparent;color:#e5f3f3;border-radius:999px;padding:5px 13px;font-size:13px}
+.chip:hover{background:rgba(255,255,255,.14)}
+main.wrap{display:grid;grid-template-columns:290px 1fr;gap:26px;padding-top:26px;padding-bottom:120px;align-items:start}
+aside.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;position:sticky;top:96px;max-height:calc(100vh - 112px);overflow:auto}
+aside h2{font:700 18px var(--head);margin-bottom:4px}
+aside p.hint{color:var(--mute);font-size:13px;margin-bottom:16px}
+label.f{display:block;font-weight:600;font-size:13px;margin:16px 0 8px}
+.range{width:100%;accent-color:var(--brand)}
+.bval{color:var(--brand);font-weight:700}
+.pri{display:flex;flex-wrap:wrap;gap:7px}
+.pri button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-size:13px}
+.pri button[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:#fff}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+.toolbar h3{font:700 20px var(--head)}
+.toolbar select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px}
+.note{font-size:13px;background:#fff7e0;border:1px solid #f3dea0;color:#6f5200;border-radius:10px;padding:9px 13px;margin-bottom:14px}
+.rec{background:linear-gradient(135deg,#0d5c63,#0a4a50);color:#fff;border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+.rec b{font:700 16px var(--head)}
+.rec p{color:#cfe8e8;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s,box-shadow .15s}
+.card.on{border-color:var(--brand);box-shadow:0 0 0 3px var(--tint)}
+.thumb{height:150px;background:hsl(var(--h) 45% 90%);display:grid;place-items:center;position:relative}
+.thumb span{font:800 44px var(--head);color:hsl(var(--h) 40% 38%);opacity:.75}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:8px}
+.tag{position:absolute;left:10px;top:10px;background:#fff;border-radius:999px;font-size:12px;font-weight:600;padding:3px 10px}
+.pick{position:absolute;right:10px;top:10px;background:var(--gold);color:#3b2a00;border-radius:999px;font-size:12px;font-weight:700;padding:3px 10px}
+.save{position:absolute;right:10px;bottom:10px;width:34px;height:34px;border-radius:50%;border:0;background:#fff;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.15);color:#9aa4b5}
+.save[aria-pressed=true]{color:#e0245e}
+.body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.brand{color:var(--mute);font-size:12.5px}
+.name{font:700 16px/1.25 var(--head)}
+.rate{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+.stars{color:var(--gold);letter-spacing:1px}
+.price{display:flex;align-items:baseline;gap:8px}
+.price b{font:800 22px var(--head)}
+.price s{color:var(--mute);font-size:13px}
+.off{color:var(--good);font-weight:600;font-size:13px}
+.feats{display:flex;flex-wrap:wrap;gap:5px}
+.feats em{font-style:normal;font-size:12px;background:#f2f5f9;border-radius:6px;padding:2px 8px;color:var(--mute)}
+.why{font-size:13px;color:var(--brand-2);background:var(--tint);border-radius:8px;padding:7px 10px}
+.acts{display:flex;gap:8px;margin-top:auto;padding-top:6px}
+.acts button{flex:1;border-radius:10px;padding:8px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:13px}
+.acts button:hover{border-color:var(--brand)}
+.acts button[aria-pressed=true]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.skel{height:340px;border-radius:var(--r);background:linear-gradient(100deg,#e6ebf2 30%,#f4f6fa 50%,#e6ebf2 70%);background-size:300% 100%;animation:sh 1.3s infinite}
+@keyframes sh{to{background-position:-100% 0}}
+.empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:70px 20px;background:#fff;border:1px dashed var(--line);border-radius:var(--r)}
+.tray{position:fixed;left:50%;bottom:18px;transform:translate(-50%,140%);background:var(--ink);color:#fff;border-radius:16px;padding:10px 12px 10px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 14px 36px rgba(0,0,0,.3);transition:transform .25s;z-index:20;max-width:calc(100% - 24px)}
+.tray.show{transform:translate(-50%,0)}
+.tray small{color:#aab4c4}
+.modal{position:fixed;inset:0;background:rgba(16,24,40,.55);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 14px;z-index:50}
+.modal.open{display:flex}
+.sheet{background:var(--bg);border-radius:20px;width:100%;max-width:1040px;padding:24px;position:relative}
+.sheet.sm{max-width:560px}
+.x{position:absolute;right:16px;top:16px;width:36px;height:36px;border-radius:50%;border:0;background:#fff;font-size:20px}
+.sheet h2{font:800 26px var(--head);letter-spacing:-.02em;margin-bottom:14px;padding-right:44px}
+.verdict{background:#fff;border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+.verdict small{color:var(--mute)}
+.tw{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:16px}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+th{font-weight:600;color:var(--mute);width:120px;background:#fafbfd}
+td.win{background:#eaf7f0;font-weight:600}
+tr:last-child th,tr:last-child td{border-bottom:0}
+ul.pc{padding-left:16px;margin:0}ul.pc li{margin:2px 0}
+.pro li::marker{color:var(--good)}.con li::marker{color:var(--bad)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.cbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}
+.cbox h4{font:700 14px var(--head);margin-bottom:8px}
+.cbox canvas{max-height:240px}
+.themes{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.th{padding:4px 11px;border-radius:999px;font-size:13px;font-weight:500}
+.th.positive{background:#e0f3e8;color:#14603a}.th.negative{background:#fdeadd;color:#9a3412}
+.loading{padding:50px;text-align:center;color:var(--mute)}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:12px;z-index:90;display:none}
+.af{display:grid;gap:14px}.af label{display:grid;gap:6px;font-weight:600;font-size:13px}
+.af input{border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:15px;background:#fff}
+.err{color:var(--bad);font-size:13px;min-height:18px}.sw{font-size:14px;color:var(--mute)}.sw a{color:var(--brand);font-weight:600}
+.score{position:absolute;left:10px;bottom:10px;background:var(--ink);color:#fff;border-radius:10px;padding:3px 9px;font:800 15px var(--head);line-height:1.1}
+.score small{display:block;font:500 9px var(--body);opacity:.7;letter-spacing:.05em;text-transform:uppercase}
+.acts.two button{font-weight:500;color:var(--mute)}
+.fs{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat b{display:block;font:800 28px var(--head)}.stat span{color:var(--mute);font-size:13px}
+td button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 10px}
+.nav{position:sticky;top:0;z-index:40;background:var(--brand);color:#fff;padding:10px 0;padding-top:calc(10px + env(safe-area-inset-top,0px));transition:box-shadow .2s}
+.nav.stuck{box-shadow:0 6px 20px rgba(6,40,44,.3)}
+.nav-in{display:flex;align-items:center;gap:16px}
+.nav .search{margin:0;flex:1;max-width:680px;box-shadow:none;gap:6px;padding:5px;border-radius:14px}
+.navbtns{display:flex;gap:8px;margin-left:auto}
+.ghost{white-space:nowrap}
+#pin{font-size:16px!important}
+.tb-r{display:flex;gap:8px;align-items:center}#fbtn{display:none}
+.toolbar{scroll-margin-top:96px}
+.chips{scrollbar-width:none}.chip{flex-shrink:0}
+@media(max-width:860px){
+ main.wrap{grid-template-columns:1fr;padding-top:16px;gap:14px}
+ aside.panel{display:none;position:static;max-height:none;overflow:visible}aside.panel.open{display:block}
+ #fbtn{display:inline-flex}
+ .nav-in{flex-wrap:wrap;gap:8px}.nav .logo{order:1;font-size:20px}.navbtns{order:2}.nav .search{order:3;flex:1 1 100%;max-width:none}
+ .ghost{padding:7px 12px;font-size:13px}.hide-sm{display:none}
+ header.top{padding:2px 0 22px}h1{margin-top:12px}
+ .toolbar{scroll-margin-top:118px}
+}
+@media(max-width:520px){
+ .wrap{padding:0 14px}
+ #pin{flex:0 0 86px!important}.btn{padding:10px 14px}
+ .chips{flex-wrap:nowrap;overflow-x:auto;margin-right:-14px;padding-right:14px}
+ .grid{grid-template-columns:1fr}
+ .modal{padding:10px 6px}.sheet{padding:16px;border-radius:16px}.sheet h2{font-size:21px}
+ .tray{padding:10px 10px 10px 16px;gap:10px;bottom:12px}
+ .stats{grid-template-columns:1fr 1fr}.toolbar h3{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="nav" id="nav"><div class="wrap nav-in">
+  <div class="logo"><i>◆</i>Cartwise</div>
+  <form class="search" id="sf"><input id="q" placeholder="Search milk, atta, earbuds…" aria-label="Search products" autocomplete="off"><input id="pin" inputmode="numeric" maxlength="6" placeholder="Pincode" aria-label="Your delivery pincode" autocomplete="postal-code"><button class="btn" type="submit">Search</button></form>
+  <div class="navbtns"><button class="ghost" id="dashBtn" hidden>Dashboard</button><button class="ghost" id="authBtn">Sign in</button><button class="ghost" id="savedBtn">Wishlist (0)</button></div>
+</div></div>
+<header class="top"><div class="wrap">
+  <h1>Compare prices, ratings and reviews in one place.</h1>
+  <p class="sub">Search any product, line up the options side by side, and let AI tell you which one to buy.</p>
+  <div class="chips" id="sugg"></div>
+</div></header>
+
+<main class="wrap">
+  <aside class="panel">
+    <h2>Your shortlist rules</h2>
+    <p class="hint">Tell us what matters and AI ranks every result for you.</p>
+    <label class="f" for="budget">Max budget <span class="bval" id="bv">No limit</span></label>
+    <input class="range" type="range" id="budget" min="0" max="10000" step="250" value="0">
+    <label class="f">What matters most</label>
+    <div class="pri" id="pri"></div>
+    <button class="btn" id="recBtn" style="width:100%;margin-top:20px" disabled>Get recommendations</button>
+    <p class="hint" style="margin-top:12px;margin-bottom:0" id="aiState"></p>
+    <div id="flt"></div>
+  </aside>
+  <section>
+    <div class="toolbar"><div><h3 id="ttl">Results</h3><div id="cnt" style="color:var(--mute);font-size:13px"></div></div>
+      <div class="tb-r"><button class="btn alt" id="fbtn" type="button">Filters</button><select id="sort" aria-label="Sort results"><option value="rel">Sort: Best match</option><option value="pa">Price: low to high</option><option value="pd">Price: high to low</option><option value="rt">Top rated</option><option value="dc">Biggest discount</option><option value="sc">Cartwise score</option><option value="eta">Fastest delivery</option></select></div></div>
+    <div id="note"></div><div id="rec"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+</main>
+
+<div class="tray" id="tray"><div><b id="tc">0 selected</b><br><small>Pick 2 to 4 products</small></div><button class="btn" id="cmpBtn" disabled>Compare</button></div>
+<div class="modal" id="m1"><div class="sheet"><button class="x" data-close aria-label="Close">×</button><div id="m1b"></div></div></div>
+<div class="modal" id="m2"><div class="sheet sm"><button class="x" data-close aria-label="Close">×</button><div id="m2b"></div></div></div>
+<div class="modal" id="m3"><div class="sheet sm"><button class="x" data-close aria-label="Close">×</button><div id="m3b"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr=n=>'₹'+Math.round(n||0).toLocaleString('en-IN');
+let cid;try{cid=localStorage.getItem('cw_cid');if(!cid){cid='c'+Date.now()+Math.random().toString(36).slice(2);localStorage.setItem('cw_cid',cid)}}catch(e){cid='anon'}
+const S={products:[],sel:new Set(),saved:new Map(),picks:{},prios:new Set(['price','rating']),budget:0,view:'results',q:'',rec:null,f:{plats:new Set(),rating:0,disc:0,eta:0,strict:false},alerts:[]};
+let charts=[];
+const tok=()=>{try{return localStorage.getItem('cw_tok')}catch(e){return null}};
+async function api(p,o={}){o.headers={...(o.headers||{}),...(tok()?{Authorization:'Bearer '+tok()}:{})};const r=await fetch(p,o);if(!r.ok){let m='Request failed';try{const j=await r.json();m=typeof j.detail==='string'?j.detail:(j.detail?.[0]?.msg||m)}catch(e){}throw new Error(m)}return r.json()}
+const post=(p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+function toast(t,ms=2600){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',ms)}
+const hue=s=>[...s].reduce((a,c)=>a*31+c.charCodeAt(0),7)%360;
+const stars=r=>'★'.repeat(Math.round(r))+'☆'.repeat(5-Math.round(r));
+
+// suggestions + priorities
+['milk','atta','chips','eggs','wireless earbuds'].forEach(t=>{const b=document.createElement('button');b.className='chip';b.type='button';b.textContent=t;b.onclick=()=>{$('#q').value=t;search(t)};$('#sugg').append(b)});
+[['price','Low price'],['rating','High rating'],['reviews','Most reviewed'],['deals','Best deals']].forEach(([k,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',S.prios.has(k));b.onclick=()=>{S.prios.has(k)?S.prios.delete(k):S.prios.add(k);b.setAttribute('aria-pressed',S.prios.has(k))};$('#pri').append(b)});
+$('#budget').oninput=e=>{S.budget=+e.target.value;$('#bv').textContent=S.budget?inr(S.budget):'No limit'};
+
+async function search(q){
+  try{localStorage.setItem('cw_pin',$('#pin').value.trim())}catch(e){}
+  if($('#pin').value&&!/^\d{6}$/.test($('#pin').value.trim()))toast('Pincode should be 6 digits');
+  S.q=q;S.view='results';S.picks={};S.rec=null;S.sel.clear();S.f.plats.clear();
+  $('#ttl').textContent=q?`Results for “${q}”`:'Popular right now';
+  $('#grid').innerHTML='<div class="skel"></div>'.repeat(6);$('#rec').innerHTML='';$('#note').innerHTML='';
+  try{
+    const d=await api(`/api/search?q=${encodeURIComponent(q)}&pincode=${encodeURIComponent($('#pin').value.trim())}&client_id=${encodeURIComponent(cid)}`);
+    S.products=d.products;
+    const n=[];
+    if(d.source==='demo')n.push('Showing demo products. Add your QuickCommerce API key to <b>.env</b> to see live listings.');
+    if(d.source==='fallback')n.push('Live results were not available for this search, so demo products are shown.');
+    if(d.warning)n.push(esc(d.warning));
+    $('#note').innerHTML=n.map(x=>`<div class="note">${x}</div>`).join('');
+    if(d.source==='idle')$('#ttl').textContent='Search to get started';
+  }catch(e){S.products=[];toast(e.message||'Search failed')}
+  fltUI();render();refreshAlerts();
+  if(q)requestAnimationFrame(()=>document.querySelector('.toolbar').scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function list(){
+  let a=S.view==='saved'?[...S.saved.values()]:[...S.products];
+  const s=$('#sort').value;
+  const f=S.f;a=a.filter(p=>(!f.plats.size||f.plats.has(p.platform))&&p.rating>=f.rating&&p.discount>=f.disc&&(!f.eta||(p.eta&&p.eta<=f.eta))&&(!f.strict||!S.budget||p.price<=S.budget));
+  if(s==='rel')a.sort((x,y)=>(S.picks[y.id]?.score??y.score??0)-(S.picks[x.id]?.score??x.score??0));
+  if(s==='sc')a.sort((x,y)=>(y.score||0)-(x.score||0));
+  if(s==='eta')a.sort((x,y)=>(x.eta||99)-(y.eta||99));
+  if(s==='pa')a.sort((x,y)=>x.price-y.price);
+  if(s==='pd')a.sort((x,y)=>y.price-x.price);
+  if(s==='rt')a.sort((x,y)=>y.rating-x.rating);
+  if(s==='dc')a.sort((x,y)=>y.discount-x.discount);
+  return a;
+}
+function card(p){
+  const pk=S.picks[p.id],rank=pk?Object.keys(S.picks).indexOf(p.id)+1:0,on=S.sel.has(p.id);
+  const ini=p.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  return `<article class="card ${on?'on':''}" data-id="${esc(p.id)}">
+  <div class="thumb" style="--h:${hue(p.name)}"><span>${esc(ini)}</span>${p.image?`<img src="${esc(p.image)}" alt="" loading="lazy" onerror="this.remove()">`:''}
+   ${p.platform?`<div class="tag">${esc(p.platform)}</div>`:''}${p.score!=null?`<div class="score" title="${esc(Object.entries(p.parts||{}).map(([k,v])=>k+' '+v).join(' · '))}">${p.score}<small>score</small></div>`:''}${pk&&rank<=3?`<div class="pick">#${rank} pick · ${pk.score}</div>`:''}
+   <button class="save" data-act="save" aria-pressed="${S.saved.has(p.id)}" aria-label="Save product">♥</button></div>
+  <div class="body"><div class="brand">${esc(p.brand)}${p.link?` ${p.brand?'· ':''}<a href="${esc(p.link)}" target="_blank" rel="noopener" style="color:var(--brand)">Open on ${esc(p.platform||'store')} ↗</a>`:''}</div><div class="name">${esc(p.name)}</div>
+   <div class="rate"><span class="stars">${stars(p.rating)}</span>${p.rating.toFixed(1)} · ${p.reviews_count.toLocaleString('en-IN')} reviews</div>
+   <div class="price"><b>${inr(p.price)}</b>${p.discount?`<s>${inr(p.mrp)}</s><span class="off">${p.discount}% off</span>`:''}</div>
+   <div class="feats">${p.features.slice(0,3).map(f=>`<em>${esc(f)}</em>`).join('')}</div>
+   ${pk?.reason?`<div class="why">${esc(pk.reason)}</div>`:''}
+   <div class="acts"><button data-act="cmp" aria-pressed="${on}">${on?'Selected':'Compare'}</button><button data-act="rev">Reviews</button></div>
+   <div class="acts two"><button data-act="hist">Price history</button><button data-act="alert">🔔 Alert</button></div></div></article>`;
+}
+function render(){
+  const a=list();
+  $('#grid').innerHTML=a.length?a.map(card).join(''):`<div class="empty"><b>${S.view==='saved'?'Your wishlist is empty':(S.q?'No products found':'Search for a product')}</b><br>${S.view==='saved'?'Tap the heart on any product to keep it here.':(S.q?'Try a broader search term.':'Enter your pincode and try “milk” or “atta” to see live prices.')}</div>`;
+  $('#recBtn').disabled=!S.products.length;
+  const tot=S.view==='saved'?S.saved.size:S.products.length;$('#cnt').textContent=tot?`Showing ${a.length} of ${tot}`:'';
+  const n=S.sel.size;$('#tc').textContent=`${n} selected`;$('#cmpBtn').disabled=n<2;$('#tray').classList.toggle('show',n>0);
+  $('#savedBtn').textContent=S.view==='saved'?'Back to results':`Wishlist (${S.saved.size})`;
+}
+$('#grid').onclick=e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const id=b.closest('.card').dataset.id,p=[...S.products,...S.saved.values()].find(x=>x.id===id);if(!p)return;
+  if(b.dataset.act==='cmp'){if(S.sel.has(id))S.sel.delete(id);else if(S.sel.size>=4)return toast('You can compare up to 4 products');else S.sel.add(id);S.saved.has(id)&&0;render()}
+  if(b.dataset.act==='save')toggleSave(p);
+  if(b.dataset.act==='rev')openReviews(p);
+  if(b.dataset.act==='hist')openHistory(p);
+  if(b.dataset.act==='alert')openAlert(p);
+};
+async function toggleSave(p){
+  if(S.saved.has(p.id)){S.saved.delete(p.id);api(`/api/saved?client_id=${encodeURIComponent(cid)}&product_id=${encodeURIComponent(p.id)}`,{method:'DELETE'}).catch(()=>{});toast('Removed from saved')}
+  else{S.saved.set(p.id,p);post('/api/saved',{client_id:cid,product:p}).catch(()=>{});toast('Saved')}
+  render();
+}
+$('#savedBtn').onclick=()=>{S.view=S.view==='saved'?'results':'saved';$('#ttl').textContent=S.view==='saved'?'Your wishlist':(S.q?`Results for “${S.q}”`:'Popular right now');render()};
+$('#sort').onchange=render;
+$('#sf').onsubmit=e=>{e.preventDefault();search($('#q').value.trim())};
+
+// recommendations
+$('#recBtn').onclick=async()=>{
+  const b=$('#recBtn');b.disabled=true;b.textContent='Ranking…';
+  try{
+    const d=await post('/api/recommend',{query:S.q,budget:S.budget,priorities:[...S.prios],products:S.products});
+    S.picks={};d.picks.forEach(p=>S.picks[p.id]=p);$('#sort').value='rel';
+    $('#rec').innerHTML=`<div class="rec"><b>${d.ai?'AI recommendation':'Recommendation'}${d.personalized?' · personalized for you':''}</b><p>${esc(d.summary)}</p></div>`;
+    render();
+  }catch(e){toast(e.message||'Could not get recommendations')}
+  b.textContent='Get recommendations';b.disabled=!S.products.length;
+};
+
+// modals
+const open=(id,html)=>{$(id+'b').innerHTML=html;$(id).classList.add('open')};
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeAll);
+document.querySelectorAll('.modal').forEach(m=>m.onclick=e=>{if(e.target===m)closeAll()});
+document.onkeydown=e=>{if(e.key==='Escape')closeAll()};
+function closeAll(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'));charts.forEach(c=>c.destroy());charts=[]}
+const loading=t=>`<div class="loading"><div class="spin"></div>${t}</div>`;
+
+$('#cmpBtn').onclick=async()=>{
+  const ps=[...S.sel].map(id=>[...S.products,...S.saved.values()].find(p=>p.id===id)).filter(Boolean);
+  open('#m1',loading('Comparing products…'));
+  try{const d=await post('/api/compare',{products:ps});showCompare(ps,d)}catch(e){open('#m1','<h2>Comparison failed</h2><p>Check that the server is running and try again.</p>')}
+};
+function showCompare(ps,d){
+  const win=d.winner_id,it=Object.fromEntries((d.items||[]).map(x=>[x.id,x]));
+  const minP=Math.min(...ps.map(p=>p.price)),maxR=Math.max(...ps.map(p=>p.rating)),maxD=Math.max(...ps.map(p=>p.discount));
+  const w=(c)=>c?'win':'';
+  const row=(l,f)=>`<tr><th>${l}</th>${ps.map(p=>f(p)).join('')}</tr>`;
+  const wp=ps.find(p=>p.id===win);
+  open('#m1',`<h2>Side by side</h2>
+  <div class="verdict"><small>${d.ai?'AI verdict':'Quick verdict'}</small><p style="margin-top:4px"><b>${esc(wp?wp.name:'')}</b> — ${esc(d.verdict)}</p></div>
+  <div class="tw"><table><tr><th></th>${ps.map(p=>`<td class="${p.id===win?'win':''}"><b>${esc(p.name)}</b>${p.id===win?'<br><small style="color:var(--good)">Best overall</small>':''}</td>`).join('')}</tr>
+  ${row('Price',p=>`<td class="${w(p.price===minP)}">${inr(p.price)}</td>`)}
+  ${row('Discount',p=>`<td class="${w(p.discount===maxD&&maxD>0)}">${p.discount?p.discount+'% off':'—'}</td>`)}
+  ${row('Rating',p=>`<td class="${w(p.rating===maxR)}">${p.rating.toFixed(1)} / 5</td>`)}
+  ${row('Reviews',p=>`<td>${p.reviews_count.toLocaleString('en-IN')}</td>`)}
+  ${row('Sold on',p=>`<td>${esc(p.platform||'—')}</td>`)}
+  ${row('Features',p=>`<td><ul class="pc">${p.features.map(f=>`<li>${esc(f)}</li>`).join('')||'—'}</ul></td>`)}
+  ${row('Pros',p=>`<td><ul class="pc pro">${(it[p.id]?.pros||[]).map(f=>`<li>${esc(f)}</li>`).join('')}</ul></td>`)}
+  ${row('Cons',p=>`<td><ul class="pc con">${(it[p.id]?.cons||[]).map(f=>`<li>${esc(f)}</li>`).join('')}</ul></td>`)}
+  </table></div>
+  <div class="charts"><div class="cbox"><h4>Price (₹)</h4><canvas id="c1"></canvas></div><div class="cbox"><h4>Rating</h4><canvas id="c2"></canvas></div><div class="cbox"><h4>Overall profile</h4><canvas id="c3"></canvas></div></div>`);
+  const col=['#0d5c63','#f2a516','#6d5dfc','#e0245e'],lab=ps.map(p=>p.name.length>18?p.name.slice(0,17)+'…':p.name);
+  const maxP=Math.max(...ps.map(p=>p.price))||1,maxN=Math.max(...ps.map(p=>p.reviews_count))||1,maxF=Math.max(...ps.map(p=>p.features.length))||1;
+  const bar=(id,data,min,max)=>charts.push(new Chart($(id),{type:'bar',data:{labels:lab,datasets:[{data,backgroundColor:col,borderRadius:8}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,min,max}}}}));
+  bar('#c1',ps.map(p=>p.price));bar('#c2',ps.map(p=>p.rating),0,5);
+  charts.push(new Chart($('#c3'),{type:'radar',data:{labels:['Value','Rating','Popularity','Discount','Features'],datasets:ps.map((p,i)=>({label:lab[i],data:[(1-p.price/maxP)*100+10,p.rating/5*100,p.reviews_count/maxN*100,Math.min(p.discount,60)/60*100,p.features.length/maxF*100],borderColor:col[i],backgroundColor:col[i]+'22',pointBackgroundColor:col[i]}))},options:{scales:{r:{min:0,max:110,ticks:{display:false}}},plugins:{legend:{labels:{boxWidth:10,font:{size:11}}}}}}));
+}
+async function openReviews(p){
+  open('#m2',loading('Reading reviews…'));
+  try{
+    const d=await post('/api/reviews',{product:p});
+    open('#m2',`<h2>${esc(p.name)}</h2><div class="verdict"><small>${d.ai?'AI review analysis':'Review estimate'}</small><p style="margin-top:4px">${esc(d.summary)}</p></div>
+    <div class="cbox"><canvas id="rc" style="max-height:220px"></canvas></div>
+    <div class="themes">${(d.themes||[]).map(t=>`<span class="th ${t.sentiment==='negative'?'negative':'positive'}">${esc(t.label)}</span>`).join('')}</div>`);
+    charts.push(new Chart($('#rc'),{type:'doughnut',data:{labels:['Positive','Neutral','Negative'],datasets:[{data:[d.positive,d.neutral,d.negative],backgroundColor:['#1a7f4b','#c5cedb','#c2410c'],borderWidth:0}]},options:{cutout:'66%',plugins:{legend:{position:'bottom'}}}}));
+  }catch(e){open('#m2','<h2>Analysis failed</h2><p>Please try again.</p>')}
+}
+
+// layout helpers
+addEventListener('scroll',()=>$('#nav').classList.toggle('stuck',scrollY>8),{passive:true});
+$('#fbtn').onclick=()=>{const a=document.querySelector('aside.panel');a.classList.toggle('open');$('#fbtn').textContent=a.classList.contains('open')?'Hide filters':'Filters'};
+// filters
+function fltUI(){
+  const pl=[...new Set(S.products.map(p=>p.platform).filter(Boolean))],opt=(k,a)=>a.map(([v,l])=>`<option value="${v}" ${S.f[k]==v?'selected':''}>${l}</option>`).join('');
+  $('#flt').innerHTML=S.products.length?`<hr style="border:0;border-top:1px solid var(--line);margin:20px 0 4px"><h2 style="margin-top:14px">Filters</h2>
+  <label class="f">Stores</label><div class="pri">${pl.map(x=>`<button type="button" data-fp="${esc(x)}" aria-pressed="${S.f.plats.has(x)}">${esc(x)}</button>`).join('')}</div>
+  <label class="f">Minimum rating</label><select class="fs" data-fk="rating">${opt('rating',[[0,'Any'],[3.5,'3.5+'],[4,'4.0+'],[4.5,'4.5+']])}</select>
+  <label class="f">Minimum discount</label><select class="fs" data-fk="disc">${opt('disc',[[0,'Any'],[10,'10%+'],[20,'20%+'],[30,'30%+']])}</select>
+  <label class="f">Delivery time</label><select class="fs" data-fk="eta">${opt('eta',[[0,'Any'],[10,'Within 10 mins'],[20,'Within 20 mins'],[30,'Within 30 mins']])}</select>
+  <label class="f" style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" data-fk="strict" ${S.f.strict?'checked':''}> Only within my budget</label>
+  <button type="button" class="btn alt" data-fk="reset" style="width:100%;margin-top:14px">Reset filters</button>`:'';
+}
+$('#flt').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.fp){S.f.plats.has(b.dataset.fp)?S.f.plats.delete(b.dataset.fp):S.f.plats.add(b.dataset.fp);b.setAttribute('aria-pressed',S.f.plats.has(b.dataset.fp));render()}
+  if(b.dataset.fk==='reset'){S.f={plats:new Set(),rating:0,disc:0,eta:0,strict:false};fltUI();render()}};
+$('#flt').onchange=e=>{const k=e.target.dataset.fk;if(!k)return;S.f[k]=e.target.type==='checkbox'?e.target.checked:+e.target.value;render()};
+// price history
+async function openHistory(p){
+  open('#m2',loading('Loading price history…'));
+  try{
+    const d=await api('/api/history?product_id='+encodeURIComponent(p.id)),pts=d.points,pr=pts.map(x=>x.price);
+    open('#m2',`<h2>${esc(p.name)}</h2><div class="verdict"><small>Price history · ${esc(p.platform)}</small><p style="margin-top:4px">Now <b>${inr(p.price)}</b>${pts.length>1?` · Lowest <b>${inr(Math.min(...pr))}</b> · Highest <b>${inr(Math.max(...pr))}</b>`:''}</p>
+    ${pts.length<2?'<p style="color:var(--mute);margin-top:6px">Tracking has started. Every time this product appears in a search its price is recorded, so the chart fills in over time.'+(d.db?'':' (Connect a database to enable tracking.)')+'</p>':''}</div><div class="cbox"><canvas id="hc"></canvas></div>`);
+    const fmt=t=>{const x=new Date(t);return x.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+x.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})};
+    if(pts.length)charts.push(new Chart($('#hc'),{type:'line',data:{labels:pts.map(x=>fmt(x.t)),datasets:[{data:pr,borderColor:'#0d5c63',backgroundColor:'#0d5c6322',fill:true,stepped:true,pointRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'₹'+v}}}}}));
+  }catch(e){open('#m2','<h2>Could not load history</h2><p>'+esc(e.message)+'</p>')}
+}
+// price-drop alerts
+function openAlert(p){
+  if(!tok()){toast('Sign in to set price alerts');return authView()}
+  open('#m2',`<h2>Price-drop alert</h2><div class="verdict"><small>${esc(p.name)}</small><p>Current price <b>${inr(p.price)}</b></p></div>
+  <p style="color:var(--mute);font-size:14px;margin-bottom:12px">${S.health?.email?'We will email you at <b>'+esc(user().email)+'</b> when it drops. ':''}We re-check this product automatically, and you will also see it on your Dashboard.</p>
+  <form id="alf" class="af"><label>Alert me when the price drops to or below (₹)<input name="t" type="number" min="1" step="1" value="${Math.floor(p.price*0.9)}" required></label><div class="err" id="alerr"></div><button class="btn" type="submit">Set alert</button></form>`);
+  $('#alf').onsubmit=async e=>{e.preventDefault();try{await post('/api/alerts',{product:p,target_price:+e.target.t.value,pincode:$('#pin').value.trim()});closeAll();toast('Alert set');refreshAlerts()}catch(er){$('#alerr').textContent=er.message}};
+}
+function refreshAlerts(){
+  if(!tok()){S.alerts=[];return updateDash()}
+  api('/api/alerts').then(d=>{S.alerts=d.items;updateDash();
+    try{const seen=JSON.parse(localStorage.getItem('cw_seen')||'[]'),fresh=d.items.filter(a=>a.triggered_at&&!seen.includes(a.product.id+a.triggered_at));
+      if(fresh.length){toast(`🔔 Price drop: ${fresh[0].product.name.slice(0,40)} is now ${inr(fresh[0].triggered_price)}${fresh.length>1?` (+${fresh.length-1} more)`:''}`,7000);localStorage.setItem('cw_seen',JSON.stringify(seen.concat(fresh.map(a=>a.product.id+a.triggered_at)).slice(-100)))}}catch(e){}
+  }).catch(()=>{});
+}
+function updateDash(){const n=S.alerts.filter(a=>!a.active&&a.triggered_at).length;$('#dashBtn').textContent=n?`Dashboard · 🔔 ${n}`:'Dashboard'}
+// dashboard
+async function openDash(){
+  open('#m1',loading('Building your dashboard…'));
+  try{
+    const d=await api('/api/dashboard'),s=d.stats,pf=d.profile,al=(await api('/api/alerts')).items;S.alerts=al;updateDash();
+    open('#m1',`<h2>Your dashboard</h2>
+    <div class="stats">${[['Searches',s.searches],['Wishlist items',s.wishlist],['Active alerts',s.alerts_active],['Price drops hit',s.alerts_triggered]].map(([l,v])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+    <div class="verdict"><small>Your taste profile (powers personalized picks)</small><p style="margin-top:4px">${pf?`${pf.platforms.length?'Favourite stores: <b>'+pf.platforms.map(esc).join(', ')+'</b>. ':''}${pf.avg_price?'Typical price: <b>'+inr(pf.avg_price)+'</b>. ':''}${pf.terms.length?'Often searches: '+pf.terms.map(esc).join(', ')+'.':''}`:'Search and save a few products and your recommendations will start adapting to you.'}</p></div>
+    <div class="charts"><div class="cbox"><h4>Searches, last 14 days</h4><canvas id="d1"></canvas></div><div class="cbox"><h4>Top searches</h4><canvas id="d2"></canvas></div><div class="cbox"><h4>Wishlist by store</h4><canvas id="d3"></canvas></div></div>
+    <h3 style="font:700 18px var(--head);margin:18px 0 8px">Price alerts</h3>
+    <div class="tw"><table><tr><td><b>Product</b></td><td><b>Target</b></td><td><b>Status</b></td><td></td></tr>
+    ${al.length?al.map(a=>`<tr><td>${esc(a.product.name)}<br><small>${esc(a.product.platform)}</small></td><td>${inr(a.target)}</td><td>${a.active?'Watching · was '+inr(a.product.price):'<b style="color:var(--good)">Dropped to '+inr(a.triggered_price)+'</b>'}</td><td><button data-rm="${esc(a.product.id)}">Remove</button></td></tr>`).join(''):'<tr><td colspan="4">No alerts yet. Tap “🔔 Alert” on any product.</td></tr>'}</table></div>
+    <button class="btn alt" id="chk">Check prices now (1 API credit per alert)</button>`);
+    const pal=['#0d5c63','#f2a516','#6d5dfc','#e0245e','#1a7f4b','#c2410c'];
+    charts.push(new Chart($('#d1'),{type:'line',data:{labels:d.searches_by_day.map(x=>x.d),datasets:[{data:d.searches_by_day.map(x=>x.c),borderColor:'#0d5c63',backgroundColor:'#0d5c6322',fill:true,tension:.3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}}));
+    charts.push(new Chart($('#d2'),{type:'bar',data:{labels:d.top_terms.map(x=>x.t),datasets:[{data:d.top_terms.map(x=>x.c),backgroundColor:pal,borderRadius:6}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}}));
+    charts.push(new Chart($('#d3'),{type:'doughnut',data:{labels:d.wishlist_by_platform.map(x=>x.p),datasets:[{data:d.wishlist_by_platform.map(x=>x.c),backgroundColor:pal,borderWidth:0}]},options:{cutout:'62%',plugins:{legend:{position:'bottom'}}}}));
+    document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=async()=>{await api('/api/alerts?product_id='+encodeURIComponent(b.dataset.rm),{method:'DELETE'});openDash()});
+    $('#chk').onclick=async e=>{e.target.disabled=true;e.target.textContent='Checking…';try{const r=await post('/api/alerts/check',{pincode:$('#pin').value.trim()});toast(r.error?r.error:`Checked ${r.checked} alert(s)`)}catch(er){toast(er.message)}openDash()};
+  }catch(e){open('#m1','<h2>Dashboard unavailable</h2><p>'+esc(e.message)+'</p>')}
+}
+$('#dashBtn').onclick=openDash;
+// auth
+let authMode='in';
+const user=()=>{try{return JSON.parse(localStorage.getItem('cw_user'))}catch(e){return null}};
+function authUI(){const u=user();$('#dashBtn').hidden=!(u&&tok());$('#authBtn').innerHTML=u&&tok()?`<span class="hide-sm">Hi, ${esc(u.name.split(' ')[0])} · </span>Sign out`:'Sign in'}
+function reloadSaved(){S.saved.clear();api('/api/saved?client_id='+encodeURIComponent(cid)).then(d=>{d.items.forEach(p=>S.saved.set(p.id,p));render()}).catch(()=>render())}
+function setAuth(d){try{if(d){localStorage.setItem('cw_tok',d.token);localStorage.setItem('cw_user',JSON.stringify(d.user))}else{localStorage.removeItem('cw_tok');localStorage.removeItem('cw_user')}}catch(e){}authUI();reloadSaved();refreshAlerts()}
+$('#authBtn').onclick=()=>{if(tok()&&user()){setAuth(null);toast('Signed out')}else authView()};
+function authView(){
+  const up=authMode==='up';
+  open('#m3',`<h2>${up?'Create your account':'Welcome back'}</h2><form id="af" class="af">
+  ${up?'<label>Name<input name="name" autocomplete="name" required></label>':''}
+  <label>Email<input name="email" type="email" autocomplete="email" required></label>
+  <label>Password<input name="password" type="password" minlength="8" autocomplete="${up?'new-password':'current-password'}" required></label>
+  <div class="err" id="aerr"></div><button class="btn" type="submit">${up?'Sign up':'Sign in'}</button>
+  <p class="sw">${up?'Already have an account?':'New here?'} <a href="#" id="asw">${up?'Sign in':'Create an account'}</a></p></form>`);
+  $('#asw').onclick=e=>{e.preventDefault();authMode=up?'in':'up';authView()};
+  $('#af').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;
+    try{const d=await post('/api/auth/'+(up?'signup':'login'),Object.fromEntries(new FormData(e.target)));setAuth(d);closeAll();toast('Welcome, '+d.user.name)}
+    catch(er){$('#aerr').textContent=er.message;b.disabled=false}};
+}
+authUI();
+// boot
+try{$('#pin').value=localStorage.getItem('cw_pin')||''}catch(e){}
+api('/api/health').then(h=>{S.health=h;$('#aiState').textContent=h.ai?'AI is connected.':'AI key not set. Rankings use a built-in scoring model.'}).catch(()=>{});
+reloadSaved();
+search('');
+</script>
+</body>
+</html>
